@@ -1,12 +1,17 @@
 ---
 title: "Mini-Project 2"
-author: "Your Name Here"
+author: "Kareen Seignon"
 date: "October 31, 2017"
 output: html_document
 ---
 
 
 ## Loading the data
+
+```{r}
+library(tidyverse)
+```
+
 
 This project is so interesting and relevant to my life!
 
