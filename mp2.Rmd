@@ -8,11 +8,6 @@ output: html_document
 
 ## Loading the data
 
-```{r}
-library(tidyverse)
-```
-
-
 This project is so interesting and relevant to my life!
 
 ```{r, include=FALSE}
@@ -21,3 +16,21 @@ load("candidates.rda")
 load("committees.rda")
 load("contributions.rda")
 ```
+```{r}
+library(tidyverse)
+```
+```{r}
+glimpse(house_elections)
+```
+```{r}
+glimpse(candidates)
+```
+```{r}
+glimpse(committees)
+```
+```{r}
+glimpse(contributions)
+```
+
+
+
