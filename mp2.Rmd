@@ -1,7 +1,7 @@
 ---
 title: "Mini-Project 2"
 author: "Kareen Seignon"
-date: "October 31, 2017"
+date: "March 8, 2017"
 output: html_document
 ---
 
@@ -20,6 +20,10 @@ load("contributions.rda")
 library(tidyverse)
 ```
 ```{r}
+library(dplyr)
+```
+
+```{r}
 glimpse(house_elections)
 ```
 ```{r}
@@ -30,6 +34,53 @@ glimpse(committees)
 ```
 ```{r}
 glimpse(contributions)
+```
+```{r}
+View(house_elections)
+```
+```{r}
+df1 <- house_elections %>% 
+ select(ge_winner, fec_id) %>% 
+ filter(ge_winner != "")
+```
+```{r}
+df<- contributions%>%
+ filter(cand_id != "") %>%
+ group_by(cand_id)%>%
+ summarize(total=n())%>%
+ arrange(desc(total))
+```
+
+```{r}
+contributions %>% 
+ select(transaction_amt)
+```
+```{r}
+left_join(df, df1, by = c("fec_id" = "cand_id"))
+```
+```{r}
+f1<- contributions%>%
+ filter(cand_id != "") %>%
+ group_by(cand_id)%>%
+ summarize(total=n())%>%
+ arrange(desc(total))
+
+df2 <- house_elections%>%
+ filter(ge_winner !="")%>%
+ select(ge_winner,fec_id)
+ names(df2)[names(df2) == "fec_id"] <- "cand_id"
+ 
+df3 <- df1%>%
+ full_join(df2, by ="cand_id")
+
+df3<- df3%>%
+ filter(!is.na(ge_winner))
+
+df4 <- candidates%>%
+ select(cand_id, cand_name)
+
+df5 <- df3%>%
+ full_join(df4, by="cand_id")
 ```
 
 
