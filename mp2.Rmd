@@ -1,7 +1,7 @@
 ---
 title: "Mini-Project 2"
 author: "Kareen Seignon"
-date: "March 8, 2017"
+date: "March 22, 2017"
 output: html_document
 ---
 
@@ -61,9 +61,10 @@ df1<- contributions%>%
  group_by(cand_id)%>%
  summarize(total=n())%>%
  arrange(desc(total))
+ 
 
 df2 <- house_elections%>%
- filter(ge_winner !="")%>%
+ filter(ge_winner !="", !is.na(ge_winner))%>%
  select(ge_winner,fec_id)
  names(df2)[names(df2) == "fec_id"] <- "cand_id"
  
@@ -74,13 +75,17 @@ df3<- df3%>%
  filter(!is.na(ge_winner))
 
 df4 <- candidates%>%
- select(cand_id, cand_name)
+ select(cand_id, cand_name, cand_party_affiliation) %>% 
+ filter(cand_party_affiliation %in% c("DEM", "REP"), !is.na(cand_party_affiliation))
 
 df5 <- df3%>%
- full_join(df4, by="cand_id")
+ full_join(df4, by="cand_id")  
+ 
 ```
-```{r}
 
+```{r}
+ggplot(df5, aes(x = ge_winner)) + 
+ geom_bar(aes(fill = cand_party_affiliation), position = "dodge")
 ```
 
 
