@@ -56,10 +56,7 @@ contributions %>%
  select(transaction_amt)
 ```
 ```{r}
-left_join(df, df1, by = c("fec_id" = "cand_id"))
-```
-```{r}
-f1<- contributions%>%
+df1<- contributions%>%
  filter(cand_id != "") %>%
  group_by(cand_id)%>%
  summarize(total=n())%>%
@@ -82,6 +79,10 @@ df4 <- candidates%>%
 df5 <- df3%>%
  full_join(df4, by="cand_id")
 ```
+```{r}
+
+```
+
 
 
 
