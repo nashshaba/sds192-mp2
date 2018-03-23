@@ -82,7 +82,6 @@ df5 <- df3%>%
  full_join(df4, by="cand_id")  
  
 ```
-
 ```{r}
 ggplot(df5, aes(x = ge_winner)) + 
  geom_bar(aes(fill = cand_party_affiliation), position = "dodge")
