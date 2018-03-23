@@ -1,10 +1,11 @@
 ---
 title: "Mini-Project 2"
 author: "Kareen Seignon"
-date: "March 22, 2017"
-output: html_document
+date: "March 23, 2017"
+output:
+  html_document:
+    code_folding: hide
 ---
-
 
 ## Loading the data
 
@@ -22,7 +23,9 @@ library(tidyverse)
 ```{r}
 library(dplyr)
 ```
-
+```{r}
+library(RColorBrewer)
+```
 ```{r}
 glimpse(house_elections)
 ```
@@ -37,23 +40,6 @@ glimpse(contributions)
 ```
 ```{r}
 View(house_elections)
-```
-```{r}
-df1 <- house_elections %>% 
- select(ge_winner, fec_id) %>% 
- filter(ge_winner != "")
-```
-```{r}
-df<- contributions%>%
- filter(cand_id != "") %>%
- group_by(cand_id)%>%
- summarize(total=n())%>%
- arrange(desc(total))
-```
-
-```{r}
-contributions %>% 
- select(transaction_amt)
 ```
 ```{r}
 df1<- contributions%>%
@@ -79,13 +65,291 @@ df4 <- candidates%>%
  filter(cand_party_affiliation %in% c("DEM", "REP"), !is.na(cand_party_affiliation))
 
 df5 <- df3%>%
- full_join(df4, by="cand_id")  
+ full_join(df4, by="cand_id")%>%
+  na.omit(ge_winner,Cand_party_affiliation)
  
 ```
 ```{r}
 ggplot(df5, aes(x = ge_winner)) + 
  geom_bar(aes(fill = cand_party_affiliation), position = "dodge")
 ```
+```{r}
+df6 <- subset(contributions, select = c(entity_type, cand_id))
+
+df7 <- subset(candidates, select = c(cand_id, cand_name))
+ 
+df8 <- df6 %>%
+full_join(df7, by="cand_id")  
+
+df10 <- df8 %>%
+ full_join(df2, by="cand_id")
+
+df11 <- df10 %>%
+ filter(ge_winner == "W", ge_winner !="", !is.na(ge_winner)) %>%
+ group_by(entity_type) %>%
+ summarize(count = n())
+
+
+p <- ggplot(df11, aes(x = entity_type, y = count))
+ 
+p +
+ geom_bar(stat="identity") +
+ theme(axis.text.x = element_text(angle = 90, hjust = 1),
+       plot.title = element_text(size=15,face = "italic", color = "gray23", hjust = 0.5)) +
+ labs(title="Whose money wins an election?",
+      subtitle="Relationship between entities making donations and proportion of election winners") +
+ scale_x_discrete("Type of entity making donations") +
+ scale_y_continuous("Frequency of supported candidates that won")
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE}
+
+load("house_elections.rda")
+load("candidates.rda")
+load("committees.rda")
+load("contributions.rda")
+load("individuals.rda")
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE}
+View(house_elections)
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE }
+View(candidates)
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE }
+View(committees)
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE }
+View(contributions)
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE }
+View(individuals)
+```
+
+```{r warning=FALSE, message=FALSE, hide=FALSE }
+df1<- contributions%>%
+  #removes all empty rows for "cand_id" variable 
+  filter(cand_id != "") %>%
+  #following 2 funcs produces a new column named  "total" which gives total no.of times one particular received contributions from committees
+  group_by(cand_id)%>%
+  summarize(total=n())%>%
+  #converts int to dbl
+  mutate(total1=as.numeric(as.integer(total)))%>%
+  #arranges the column named "total"  in desending order
+  arrange(desc(total))
+
+df2 <- house_elections%>%
+  #removes all empty rows for ge_winner variable 
+  filter(ge_winner !="")%>%
+  #selects these 2 variables from house_elections into the new dataframe
+  select(ge_winner,fec_id)
+  #renames the column named "fec_id" in df2 to "cand_id"
+  names(df2)[names(df2) == "fec_id"] <- "cand_id"
+  
+df3 <- df1%>%
+  #joins dataframes "df1" & "df2" by their shared column named "cand_id"to make "df3"
+  full_join(df2, by ="cand_id")
+
+
+
+df4 <- candidates%>%
+  #selects these 3 variables from canditates into the new dataframe
+  select(cand_id, cand_name, cand_party_affiliation)%>%
+  #keeps rows containing values "DEM" & "REP" cand_party_affiliation variable and also removes all rows with NAs in columns named "cand_party_affiliation" & "cand_name"
+  filter(cand_party_affiliation%in%c("DEM","REP"),!is.na(cand_party_affiliation),!is.na(cand_name))
+  
+  
+
+df5 <- df3%>%
+  #joins dataframes "df3" & "df4" by their shared column named "cand_id"to make "df5"
+  full_join(df4, by="cand_id")%>%
+  #omits all rows containing NAs for the following 2 variables
+  na.omit(ge_winner,cand_party_affiliation)
+
+ 
+
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE}
+
+plot1 <- ggplot(df5,aes(x=ge_winner))
+  plot1+
+    geom_bar(aes(fill=cand_party_affiliation),position = "dodge")+
+    scale_x_discrete()
+
+
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE}
+df6 <- df5%>%
+  #new data frame that contains only the top 20 canditates who received contributions from committees the hightest no. of times
+  head(20)
+
+#creates a ggplot with name of the top 20 canditates on the x axis and the total no. of times they received contributions on the y axis
+plot2 <- ggplot(df6, aes(x=cand_name,y=total1, fill=ge_winner))
+
+plot2+
+  #creates a bar plot
+  geom_bar(stat="identity")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        plot.title = element_text(size=15,face = "italic", color = "gray23", hjust = 0.5))+
+  scale_x_discrete("Candidate name")+
+  scale_y_continuous("No. of contributions received", limits = c(0,2000), breaks = seq(0,2000,200))+
+  scale_fill_discrete("Key", labels=c("Loss", "Win"))+
+  labs(title="Can money win you an election?",
+       subtitle="Relationship between no. of times a candidate received a contribution and winning/losing an election")
+```
+```{r warning=FALSE, message=FALSE, hide=TRUE}
+
+load("house_elections.rda")
+load("candidates.rda")
+load("committees.rda")
+load("contributions.rda")
+load("individuals.rda")
+
+
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE}
+View(house_elections)
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE }
+View(candidates)
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE }
+View(committees)
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE }
+View(contributions)
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE }
+View(individuals)
+```
+
+```{r warning=FALSE, message=FALSE, hide=FALSE }
+df1<- contributions%>%
+  #removes all empty rows for "cand_id" variable 
+  filter(cand_id != "") %>%
+  #following 2 funcs produces a new column named  "total" which gives total no.of times one particular received contributions from committees
+  group_by(cand_id)%>%
+  summarize(total=n())%>%
+  #converts int to dbl
+  mutate(total1=as.numeric(as.integer(total)))%>%
+  #arranges the column named "total"  in desending order
+  arrange(desc(total))
+
+df2 <- house_elections%>%
+  #removes all empty rows for ge_winner variable 
+  filter(ge_winner !="")%>%
+  #selects these 2 variables from house_elections into the new dataframe
+  select(ge_winner,fec_id)
+  #renames the column named "fec_id" in df2 to "cand_id"
+  names(df2)[names(df2) == "fec_id"] <- "cand_id"
+  
+df3 <- df1%>%
+  #joins dataframes "df1" & "df2" by their shared column named "cand_id"to make "df3"
+  full_join(df2, by ="cand_id")
+
+
+
+df4 <- candidates%>%
+  #selects these 3 variables from canditates into the new dataframe
+  select(cand_id, cand_name, cand_party_affiliation)%>%
+  #keeps rows containing values "DEM" & "REP" cand_party_affiliation variable and also removes all rows with NAs in columns named "cand_party_affiliation" & "cand_name"
+  filter(cand_party_affiliation%in%c("DEM","REP"),!is.na(cand_party_affiliation),!is.na(cand_name))
+  
+  
+
+df5 <- df3%>%
+  #joins dataframes "df3" & "df4" by their shared column named "cand_id"to make "df5"
+  full_join(df4, by="cand_id")%>%
+  #omits all rows containing NAs for the following 2 variables
+  na.omit(ge_winner,cand_party_affiliation)
+
+```
+```{r warning=FALSE, message=FALSE, hide=TRUE}
+
+plot1 <- ggplot(df5,aes(x=ge_winner))
+  plot1+
+    geom_bar(aes(fill=cand_party_affiliation),position = "dodge")+
+    scale_x_discrete()
+
+
+```
+
+```{r warning=FALSE, message=FALSE, hide=TRUE}
+df6 <- df5%>%
+  #new data frame that contains only the top 20 canditates who received contributions from committees the hightest no. of times
+  head(20)
+
+#creates a ggplot with name of the top 20 canditates on the x axis and the total no. of times they received contributions on the y axis
+plot2 <- ggplot(df6, aes(x=cand_name,y=total1, fill=ge_winner))
+
+plot2+
+  #creates a bar plot
+  geom_bar(stat="identity")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        plot.title = element_text(size=15,face = "italic", color = "gray23", hjust = 0.5))+
+  scale_x_discrete("Candidate name")+
+  scale_y_continuous("No. of contributions received", limits = c(0,2000), breaks = seq(0,2000,200))+
+  scale_fill_discrete("Key", labels=c("Loss", "Win"))+
+  labs(title="Can money win you an election?",
+       subtitle="Relationship between no. of times a candidate received a contribution and winning/losing an election")
+
+```
+
+```{r warning=FALSE, message=FALSE,hide=TRUE}
+df6 <- subset(contributions, select = c(entity_type, cand_id))
+
+df7 <- subset(candidates, select = c(cand_id, cand_name))
+ 
+df8 <- df6 %>%
+full_join(df7, by="cand_id")
+
+df2 <- house_elections%>%
+  filter(ge_winner !="")%>%
+  select(ge_winner,fec_id)
+  names(df2)[names(df2) == "fec_id"] <- "cand_id"
+
+df10 <- df8 %>%
+ full_join(df2, by="cand_id")
+
+df11 <- df10 %>%
+ filter(ge_winner == "W", ge_winner !="", !is.na(ge_winner),entity_type !="" ) %>%
+ group_by(entity_type) %>%
+ summarize(count = n())%>%
+  na.omit()
+
+
+p <- ggplot(df11, aes(x = entity_type, y = count))
+ 
+p +
+ geom_bar(stat="identity", aes(fill = entity_type)) +
+ theme(axis.text.x = element_text(angle = 90, hjust = 1),
+       plot.title = element_text(size=15,face = "italic", color = "gray23", hjust = 0.5),
+       legend.position = "none") +
+  scale_x_discrete("Type of entity making donations") +
+ scale_y_continuous("Frequency of supported candidates that won") +
+
+ labs(title="Whose money wins an election?",
+      subtitle="Relationship between entities making donations and proportion of election winners") + scale_fill_brewer(palette = "Dark2")
+```
+
+Github repository: https://github.com/kseignon/sds192-mp2.git
+
+<center> <h1>A Title </h1> </center>
+
+
+
 
 
 
