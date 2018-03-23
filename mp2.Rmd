@@ -1,144 +1,35 @@
 ---
 title: "Mini-Project 2"
-author: "Kareen Seignon"
+author: "Nashshaba Nawaz, Kareen Seignon, and Julia Bouzaher"
 date: "March 23, 2017"
 output:
   html_document:
     code_folding: hide
 ---
 
-## Loading the data
+```{r warning=FALSE, message=FALSE}
 
-This project is so interesting and relevant to my life!
-
-```{r, include=FALSE}
 load("house_elections.rda")
 load("candidates.rda")
 load("committees.rda")
 load("contributions.rda")
-```
-```{r}
 library(tidyverse)
-```
-```{r}
-library(dplyr)
-```
-```{r}
-library(RColorBrewer)
-```
-```{r}
-glimpse(house_elections)
-```
-```{r}
-glimpse(candidates)
-```
-```{r}
-glimpse(committees)
-```
-```{r}
-glimpse(contributions)
-```
-```{r}
-View(house_elections)
-```
-```{r}
-df1<- contributions%>%
- filter(cand_id != "") %>%
- group_by(cand_id)%>%
- summarize(total=n())%>%
- arrange(desc(total))
- 
+library(gridExtra)
 
-df2 <- house_elections%>%
- filter(ge_winner !="", !is.na(ge_winner))%>%
- select(ge_winner,fec_id)
- names(df2)[names(df2) == "fec_id"] <- "cand_id"
- 
-df3 <- df1%>%
- full_join(df2, by ="cand_id")
-
-df3<- df3%>%
- filter(!is.na(ge_winner))
-
-df4 <- candidates%>%
- select(cand_id, cand_name, cand_party_affiliation) %>% 
- filter(cand_party_affiliation %in% c("DEM", "REP"), !is.na(cand_party_affiliation))
-
-df5 <- df3%>%
- full_join(df4, by="cand_id")%>%
-  na.omit(ge_winner,Cand_party_affiliation)
- 
-```
-```{r}
-ggplot(df5, aes(x = ge_winner)) + 
- geom_bar(aes(fill = cand_party_affiliation), position = "dodge")
-```
-```{r}
-df6 <- subset(contributions, select = c(entity_type, cand_id))
-
-df7 <- subset(candidates, select = c(cand_id, cand_name))
- 
-df8 <- df6 %>%
-full_join(df7, by="cand_id")  
-
-df10 <- df8 %>%
- full_join(df2, by="cand_id")
-
-df11 <- df10 %>%
- filter(ge_winner == "W", ge_winner !="", !is.na(ge_winner)) %>%
- group_by(entity_type) %>%
- summarize(count = n())
-
-
-p <- ggplot(df11, aes(x = entity_type, y = count))
- 
-p +
- geom_bar(stat="identity") +
- theme(axis.text.x = element_text(angle = 90, hjust = 1),
-       plot.title = element_text(size=15,face = "italic", color = "gray23", hjust = 0.5)) +
- labs(title="Whose money wins an election?",
-      subtitle="Relationship between entities making donations and proportion of election winners") +
- scale_x_discrete("Type of entity making donations") +
- scale_y_continuous("Frequency of supported candidates that won")
 ```
 
-```{r warning=FALSE, message=FALSE, hide=TRUE}
 
-load("house_elections.rda")
-load("candidates.rda")
-load("committees.rda")
-load("contributions.rda")
-load("individuals.rda")
-```
 
-```{r warning=FALSE, message=FALSE, hide=TRUE}
-View(house_elections)
-```
 
-```{r warning=FALSE, message=FALSE, hide=TRUE }
-View(candidates)
-```
 
-```{r warning=FALSE, message=FALSE, hide=TRUE }
-View(committees)
-```
-
-```{r warning=FALSE, message=FALSE, hide=TRUE }
-View(contributions)
-```
-
-```{r warning=FALSE, message=FALSE, hide=TRUE }
-View(individuals)
-```
-
-```{r warning=FALSE, message=FALSE, hide=FALSE }
+```{r warning=FALSE, message=FALSE}
 df1<- contributions%>%
   #removes all empty rows for "cand_id" variable 
   filter(cand_id != "") %>%
   #following 2 funcs produces a new column named  "total" which gives total no.of times one particular received contributions from committees
   group_by(cand_id)%>%
   summarize(total=n())%>%
-  #converts int to dbl
+  #converts int to dbls
   mutate(total1=as.numeric(as.integer(total)))%>%
   #arranges the column named "total"  in desending order
   arrange(desc(total))
@@ -175,144 +66,46 @@ df5 <- df3%>%
 
 ```
 
-```{r warning=FALSE, message=FALSE, hide=TRUE}
 
-plot1 <- ggplot(df5,aes(x=ge_winner))
-  plot1+
-    geom_bar(aes(fill=cand_party_affiliation),position = "dodge")+
-    scale_x_discrete()
+    
+
+<center> <h1> Winning an election: who and how? </h1> </center>
 
 
-```
+When it comes to elections for the U.S. House of Representatives, we might generally assume the total amount of money contributed to a candidate as well as the source of the money matters. As we can see from articles such as https://www.bna.com/corporate-america-starts-n57982087278/ and https://www.washingtonpost.com/politics/the-new-gilded-age-close-to-half-of-all-super-pac-money-comes-from-50-donors/2016/04/15/63dc363c-01b4-11e6-9d36-33d198ea26c5_story.html?utm_term=.c49f7323569f, super PACs are unique in that their contributors are characteristically extremely wealthy individuals or corporations that we can safely infer have lobbying and influential power in U.S. politics. By analyzing the amount of contributions made to candidates and the type of organizations that made these contributions, we sought to answer the questions: What were the numbers of contributions that House election winners received? Did some entities produce more election winners than others?
 
-```{r warning=FALSE, message=FALSE, hide=TRUE}
+```{r warning=FALSE, message=FALSE}
 df6 <- df5%>%
   #new data frame that contains only the top 20 canditates who received contributions from committees the hightest no. of times
   head(20)
 
 #creates a ggplot with name of the top 20 canditates on the x axis and the total no. of times they received contributions on the y axis
-plot2 <- ggplot(df6, aes(x=cand_name,y=total1, fill=ge_winner))
+plot1 <- ggplot(df6, aes(x=cand_name,y=total1, fill=ge_winner))
 
-plot2+
+plot2 <- plot1+
   #creates a bar plot
   geom_bar(stat="identity")+
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         plot.title = element_text(size=15,face = "italic", color = "gray23", hjust = 0.5))+
   scale_x_discrete("Candidate name")+
   scale_y_continuous("No. of contributions received", limits = c(0,2000), breaks = seq(0,2000,200))+
-  scale_fill_discrete("Key", labels=c("Loss", "Win"))+
-  labs(title="Can money win you an election?",
-       subtitle="Relationship between no. of times a candidate received a contribution and winning/losing an election")
-```
-```{r warning=FALSE, message=FALSE, hide=TRUE}
-
-load("house_elections.rda")
-load("candidates.rda")
-load("committees.rda")
-load("contributions.rda")
-load("individuals.rda")
-
-
-```
-
-```{r warning=FALSE, message=FALSE, hide=TRUE}
-View(house_elections)
-```
-
-```{r warning=FALSE, message=FALSE, hide=TRUE }
-View(candidates)
-```
-
-```{r warning=FALSE, message=FALSE, hide=TRUE }
-View(committees)
-```
-
-```{r warning=FALSE, message=FALSE, hide=TRUE }
-View(contributions)
-```
-
-```{r warning=FALSE, message=FALSE, hide=TRUE }
-View(individuals)
-```
-
-```{r warning=FALSE, message=FALSE, hide=FALSE }
-df1<- contributions%>%
-  #removes all empty rows for "cand_id" variable 
-  filter(cand_id != "") %>%
-  #following 2 funcs produces a new column named  "total" which gives total no.of times one particular received contributions from committees
-  group_by(cand_id)%>%
-  summarize(total=n())%>%
-  #converts int to dbl
-  mutate(total1=as.numeric(as.integer(total)))%>%
-  #arranges the column named "total"  in desending order
-  arrange(desc(total))
-
-df2 <- house_elections%>%
-  #removes all empty rows for ge_winner variable 
-  filter(ge_winner !="")%>%
-  #selects these 2 variables from house_elections into the new dataframe
-  select(ge_winner,fec_id)
-  #renames the column named "fec_id" in df2 to "cand_id"
-  names(df2)[names(df2) == "fec_id"] <- "cand_id"
-  
-df3 <- df1%>%
-  #joins dataframes "df1" & "df2" by their shared column named "cand_id"to make "df3"
-  full_join(df2, by ="cand_id")
-
-
-
-df4 <- candidates%>%
-  #selects these 3 variables from canditates into the new dataframe
-  select(cand_id, cand_name, cand_party_affiliation)%>%
-  #keeps rows containing values "DEM" & "REP" cand_party_affiliation variable and also removes all rows with NAs in columns named "cand_party_affiliation" & "cand_name"
-  filter(cand_party_affiliation%in%c("DEM","REP"),!is.na(cand_party_affiliation),!is.na(cand_name))
-  
-  
-
-df5 <- df3%>%
-  #joins dataframes "df3" & "df4" by their shared column named "cand_id"to make "df5"
-  full_join(df4, by="cand_id")%>%
-  #omits all rows containing NAs for the following 2 variables
-  na.omit(ge_winner,cand_party_affiliation)
-
-```
-```{r warning=FALSE, message=FALSE, hide=TRUE}
-
-plot1 <- ggplot(df5,aes(x=ge_winner))
-  plot1+
-    geom_bar(aes(fill=cand_party_affiliation),position = "dodge")+
-    scale_x_discrete()
-
-
-```
-
-```{r warning=FALSE, message=FALSE, hide=TRUE}
-df6 <- df5%>%
-  #new data frame that contains only the top 20 canditates who received contributions from committees the hightest no. of times
-  head(20)
-
-#creates a ggplot with name of the top 20 canditates on the x axis and the total no. of times they received contributions on the y axis
-plot2 <- ggplot(df6, aes(x=cand_name,y=total1, fill=ge_winner))
-
-plot2+
-  #creates a bar plot
-  geom_bar(stat="identity")+
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
-        plot.title = element_text(size=15,face = "italic", color = "gray23", hjust = 0.5))+
-  scale_x_discrete("Candidate name")+
-  scale_y_continuous("No. of contributions received", limits = c(0,2000), breaks = seq(0,2000,200))+
-  scale_fill_discrete("Key", labels=c("Loss", "Win"))+
+  scale_fill_discrete("Key", labels=c("Lost", "Won"))+
   labs(title="Can money win you an election?",
        subtitle="Relationship between no. of times a candidate received a contribution and winning/losing an election")
 
+plot2
+
 ```
 
-```{r warning=FALSE, message=FALSE,hide=TRUE}
+```{r warning=FALSE, message=FALSE}
+#data.frame containing only variables "entity_type" and "cand_id" from contributions dataset
 df6 <- subset(contributions, select = c(entity_type, cand_id))
 
+#data.frame containing only variables "cand_id" and "cand_name" from canditates dataset
 df7 <- subset(candidates, select = c(cand_id, cand_name))
  
 df8 <- df6 %>%
+  #joins df6 with df7 by variable "cand_id" to create df8
 full_join(df7, by="cand_id")
 
 df2 <- house_elections%>%
@@ -321,36 +114,40 @@ df2 <- house_elections%>%
   names(df2)[names(df2) == "fec_id"] <- "cand_id"
 
 df10 <- df8 %>%
+  #joins df8 with df2 by variable "cand_id" to create df10
  full_join(df2, by="cand_id")
 
 df11 <- df10 %>%
+  #Selects rows with value "w" only from "ge_winner" variables and removes all rows with NAs for following 2 variables
  filter(ge_winner == "W", ge_winner !="", !is.na(ge_winner),entity_type !="" ) %>%
+  #produces variable "count" which consists of number of supported candidates who won an election for different PACs
  group_by(entity_type) %>%
  summarize(count = n())%>%
+  #emits all rows containing an NA for the varibales in the data.frame
   na.omit()
 
 
 p <- ggplot(df11, aes(x = entity_type, y = count))
  
-p +
- geom_bar(stat="identity", aes(fill = entity_type)) +
+p1 <-p +
+ geom_bar(stat="identity",  fill="lightseagreen") +
  theme(axis.text.x = element_text(angle = 90, hjust = 1),
        plot.title = element_text(size=15,face = "italic", color = "gray23", hjust = 0.5),
        legend.position = "none") +
   scale_x_discrete("Type of entity making donations") +
- scale_y_continuous("Frequency of supported candidates that won") +
+ scale_y_continuous("Frequency of supported candidates that won")+
+  labs(title="Whose money wins an election?",
+      subtitle="Relationship between entities making donations and proportion of election winners") 
 
- labs(title="Whose money wins an election?",
-      subtitle="Relationship between entities making donations and proportion of election winners") + scale_fill_brewer(palette = "Dark2")
+p1
 ```
 
-Github repository: https://github.com/kseignon/sds192-mp2.git
+In summary, our representations of this data show not only the spread of total amount of funding received by the top 20 candidates, but also that there is a strong link between the type of entity making contributions to a campaign and a campaign winning an election for the U.S. House of Representatives, with candidate committees of individual candidates producing the highest number of winners. 
 
-<center> <h1>A Title </h1> </center>
+Moving on to the first data graphic, we can see that the candidates who ranked in the top 20 for number of contributions each received between 800 and 2000 donations. To focus on one observation, even though Democratic candidate Mark Critz received the most number of contributions, he still lost to Republican candidate Keith Rothfus in the race for Pennsylvania's 12th congressional district seat.  Rothfus comes in 5th as compared to Critz's 1st when talking about who received the most no. of contributions. This compels us to dwell on the fact that it's not who received the most financial support that determines whether they win or not. But we might assume that it is the type of entity that contributes and the ways in which they contribute towards campaigns that determines if a candidate wins or loses. But how do we know that? If we look at the data for the second bar graph, we may be able to hypothesize a reason to support our assumption.
 
+As we can see from the second graph, Candidate Committees produce the highest number of winning candidates. However, each candidate have their own committees, and these candidate committees were created with the purpose of supporting and contributing towards that candidate's campaign. Perhaps the fact that candidate committees are solely dedicated to one candidate has beneficial side effects for the candidate receiving the contribution. On the other hand, PACs can choose the candidate they want to support.  Super PACs can also spend money independently on political activities, including advertising and other efforts to support or oppose candidates in an election. Analysis of data used to create the second data graphic shows that 9.40% of total no. of contributions received by Rothfus were from PACs whereas the total PAC contributions towards Critz is only 6.14% of the total. The linked article: http://www.politicspa.com/how-rothfus-won-and-what-it-means-for-southwest-pa/44308/ , talks about the power of advertisement and how spending a significant amount on television advertising to help redefine Rothfus' image as a "regular guy" and to portray a negative image of Critz actually played a crucial part in helping Rothfus to win. 
 
+Further analysis of these datasets would allow us to come up with better ideas about money's role in an election and therefore devise ways to effectively finance an electoral campaign. 
 
-
-
-
-
+[^1] Github repository: https://github.com/kseignon/sds192-mp2.git
